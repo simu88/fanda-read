@@ -29,8 +29,8 @@
 #           var.msk_topic_arn
 #         ]
 #       }
-      
-  
+
+
 #     ]
 #   })
 # }
@@ -47,7 +47,7 @@ resource "aws_iam_role" "fanda_s3_to_msk_lambda_role" {
   name = "fanda_s3_to_msk_lambda_role"
 
   assume_role_policy = jsonencode({
-    Version   = "2012-10-17",
+    Version = "2012-10-17",
     Statement = [{
       Action    = "sts:AssumeRole",
       Effect    = "Allow",
@@ -84,7 +84,7 @@ resource "aws_iam_role_policy_attachment" "fanda_lambda_basic" {
 # Lambda 배포용 zip 자동 생성
 data "archive_file" "lambda_zip" {
   type        = "zip"
-  source_dir  = "${path.module}/lambda-function"  # producer.py 등이 있는 폴더
+  source_dir  = "${path.module}/lambda-function" # producer.py 등이 있는 폴더
   output_path = "${path.module}/lambda-deployment-package.zip"
 }
 
@@ -122,15 +122,15 @@ resource "aws_lambda_function" "fanda_s3_to_msk_lambda" {
   environment {
     variables = {
       //MSK_BOOTSTRAP_SERVERS = var.msk_bootstrap_servers
-      MSK_CLUSTER_ARN       = var.msk_cluster_arn
-      MSK_TOPIC       = "fanda-notifications"  # 단일 토픽 이름
-      CHANNELS        = "slack,email"          # 메시지 내부에 포함시킬 채널
+      MSK_CLUSTER_ARN = var.msk_cluster_arn
+      MSK_TOPIC       = "fanda-notifications" # 단일 토픽 이름
+      CHANNELS        = "slack,email"         # 메시지 내부에 포함시킬 채널
     }
   }
 
   depends_on = [aws_iam_role_policy_attachment.fanda_msk_producer_policy_attach,
-                aws_iam_role_policy_attachment.fanda_lambda_cloudwatch,
-                aws_iam_role_policy_attachment.fanda_lambda_basic]
+    aws_iam_role_policy_attachment.fanda_lambda_cloudwatch,
+  aws_iam_role_policy_attachment.fanda_lambda_basic]
 }
 
 
