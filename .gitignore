@@ -1,0 +1,9 @@
+.terraform/
+*.tfstate
+*.tfstate.*
+*.log
+*.bak
+*.zip
+*.tar.gz
+*.plan
+*.tfvars

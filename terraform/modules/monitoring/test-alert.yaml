@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: test-alert
+  namespace: fanda-monitoring
+  labels:
+    release: prometheus-stack
+spec:
+  groups:
+  - name: forced-test
+    rules:
+    - alert: ForcedTestAlert
+      expr: vector(1)          # 항상 참이 되는 안전한 표현식
+      for: 10s
+      labels:
+        severity: critical
+      annotations:
+        summary: "Forced Test Alert"
+        description: "Testing Prometheus -> Alertmanager -> Slack pipeline."

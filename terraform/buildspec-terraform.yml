@@ -1,0 +1,48 @@
+version: 0.2
+
+env:
+  variables:
+    TF_IN_AUTOMATION: "true"
+  # S3 백엔드 사용 시 필요한 환경변수 추가 가능
+  # TF_VAR_region: "ap-northeast-2"
+  # TF_VAR_cluster_name: "univ-eks"
+
+phases:
+  install:
+    runtime-versions:
+      docker: 20
+    commands:
+      - echo "Installing Terraform..."
+      - curl -fsSL -o terraform.zip https://releases.hashicorp.com/terraform/1.6.6/terraform_1.6.6_linux_amd64.zip
+      - unzip terraform.zip
+      - mv terraform /usr/local/bin/
+      - terraform -version
+      - echo "Installing kubectl..."
+      - curl -LO "https://dl.k8s.io/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
+      - chmod +x kubectl && mv kubectl /usr/local/bin/
+      - kubectl version --client
+      - echo "Install complete"
+  
+  pre_build:
+    commands:
+      - echo "Configuring AWS CLI (SSO-based assumed role already active)"
+      - aws sts get-caller-identity
+
+  build:
+    commands:
+      - echo "Terraform Init"
+      - terraform init -input=false
+      - echo "Terraform Validate"
+      - terraform validate
+      - echo "Terraform Plan"
+      - terraform plan -out=tfplan -input=false
+
+  post_build:
+    commands:
+      - echo "Terraform Apply"
+      - terraform apply -input=false -auto-approve tfplan
+      - echo "Terraform Apply Completed"
+
+artifacts:
+  files:
+    - '**/*'

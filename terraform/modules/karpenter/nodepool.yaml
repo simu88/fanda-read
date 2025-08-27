@@ -1,0 +1,116 @@
+# # --- NodePool: 어떤 종류의 노드를 만들지에 대한 정책 ---
+# apiVersion: karpenter.sh/v1beta1
+# kind: NodePool
+# metadata:
+#   # 프로비저너의 이름
+#   name: fanda-karpenter-provisioner
+# spec:
+#   # 이 NodePool이 어떤 종류의 파드를 처리할지 정의합니다.
+#   # 비워두면 모든 파드를 대상으로 합니다.
+#   template:
+#     spec:
+#       # 노드가 만족해야 할 요구사항 목록
+#       requirements:
+#         # 용량 유형: "on-demand"(고정 요금) 또는 "spot"(경매 방식)
+#         - key: karpenter.sh/capacity-type
+#           operator: In
+#           values: ["on-demand"]
+#         # CPU 아키텍처: "amd64"(x86) 또는 "arm64"(Graviton)
+#         # m7g.xlarge를 사용하려면 "arm64"로 설정해야 합니다.
+#         - key: kubernetes.io/arch
+#           operator: In
+#           values: ["arm64"]
+      
+#       # 이 NodePool이 사용할 노드의 세부 사양을 정의한 AWSNodeTemplate을 참조합니다.
+#       nodeClassRef:
+#         name: default
+
+#   # 노드 축소 및 제거에 대한 정책
+#   disruption:
+#     # 언제 노드를 통합(축소)할지 결정합니다.
+#     # WhenUnderutilized: 노드 사용률이 낮을 때 (더 작은 노드로 통합 시도)
+#     # WhenEmpty: 노드가 완전히 비었을 때
+#     consolidationPolicy: WhenUnderutilized
+    
+#     # 노드 사용률이 낮거나 비어있는 상태가 30초 지속되면 통합/삭제를 시도합니다.
+#     # consolidationPolicy 설정이 있을 때 작동합니다.
+#     consolidateAfter: 30s
+    
+#     # 노드의 최대 수명. 보안 및 안정성을 위해 주기적으로 노드를 교체합니다. (예: 30s일)
+#     expireAfter: 720h
+
+# ---
+
+# # --- AWSNodeTemplate: AWS에 특화된 노드 생성 방법 정의 ---
+# apiVersion: karpenter.k8s.aws/v1beta1
+# kind: AWSNodeTemplate
+# metadata:
+#   # 위 NodePool이 참조하는 템플릿의 이름
+#   name: fanda-karpenter-template
+# spec:
+#   # 이 템플릿으로 생성된 노드에 부여할 IAM 인스턴스 프로필의 이름입니다.
+#   # Terraform의 `aws_iam_instance_profile` 리소스에서 생성한 이름을 정확히 기입해야 합니다.
+#   iamInstanceProfile: karpenter-node-instance-profile
+
+#   # 어떤 서브넷에 노드를 생성할지 결정하는 셀렉터입니다.
+#   # Terraform에서 설정한 `karpenter.sh/discovery: fanda-eks` 태그가 있는 서브넷을 찾습니다.
+#   subnetSelector:
+#     "karpenter.sh/discovery": "fanda-eks"
+  
+#   # 생성될 노드에 어떤 보안 그룹을 적용할지 결정하는 셀렉터입니다.
+#   # Terraform에서 설정한 `karpenter.sh/discovery: fanda-eks` 태그가 있는 보안 그룹을 찾습니다.
+#   securityGroupSelector:
+#     "karpenter.sh/discovery": "fanda-eks"
+
+# --- NodePool ---
+# nodepool.yaml (Karpenter v1 API 호환 최종 버전)
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: fanda-karpenter-nodepool
+spec:
+  template:
+    metadata:
+      labels:
+        # [권장] 이 키를 모든 애플리케이션의 affinity에서 사용해야 합니다.
+        fanda-compute-type: application 
+
+    spec:
+      requirements:
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: ["on-demand"]
+        - key: kubernetes.io/arch
+          operator: In
+          #values: ["arm64","amd64"]  #혼합
+          values: ["amd64"]
+
+      
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: fanda-karpenter-ec2class
+  # [수정 1] 노드 만료 설정이 "disruption" 블록 밖으로 이동하고 이름이 변경됨
+
+  disruption:
+    consolidationPolicy:  WhenEmptyOrUnderutilized
+    consolidateAfter: "10m" # 값을 따옴표로 감싸는 것이 더 안전합니다.
+    
+---
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: fanda-karpenter-ec2class
+spec:
+  # [수정 2] amiFamily가 amiSelectorTerms 안으로 이동함
+  amiSelectorTerms:
+    - alias: "al2@latest" # Amazon Linux 2 최신 버전을 의미하는 별칭
+  # [중요] 이 역할 이름은 Terraform으로 생성한 실제 역할 이름과 일치해야 합니다.
+  role: "fanda-karpenter-node-role"
+  # [수정 3] subnetSelector 및 securityGroupSelector의 이름과 구조 변경
+  subnetSelectorTerms:
+    - tags:
+        "karpenter.sh/discovery": "fanda-eks"
+  securityGroupSelectorTerms:
+    - tags:
+        "karpenter.sh/discovery": "fanda-eks"

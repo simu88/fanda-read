@@ -1,0 +1,57 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: fanda-msk-topic-job
+  namespace: fanda-msk-topic
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: kafka-topic-creator
+    spec:
+      serviceAccountName: fanda-msk-topic-create-sa
+      restartPolicy: Never
+      containers:
+      - name: kafka-topic-creator
+        image: 746491138596.dkr.ecr.us-east-1.amazonaws.com/fanda-ecr-repo:latest
+        imagePullPolicy: Always
+        env:
+        - name: BOOTSTRAP_SERVERS
+          valueFrom:
+            secretKeyRef:
+              name: kafka-topic-credentials
+              key: BOOTSTRAP_SERVERS
+        - name: MSK_TOPICS
+          value: "fanda-notifications"
+        - name: CLASSPATH
+          value: "/usr/share/java/kafka/*:/home/appuser/bin/aws-msk-iam-auth.jar"
+        - name: KAFKA_OPTS
+          value: "-Djava.security.auth.login.config=/home/appuser/config/client.properties"
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          CONFIG_FILE=/home/appuser/config/client.properties
+          for topic in $(echo "$MSK_TOPICS" | tr ',' ' '); do
+            echo "Creating topic: $topic"
+            kafka-topics --bootstrap-server "$BOOTSTRAP_SERVERS" \
+              --topic "$topic" --create --partitions 3 --replication-factor 2 \
+              --command-config "$CONFIG_FILE"
+
+            if [ $? -eq 0 ]; then
+              echo "Topic $topic created or already exists."
+            else
+              echo "Failed to create topic $topic"
+            fi
+          done
+          echo "Sleeping for 1 hour to keep pod alive"
+          sleep 3600
+        volumeMounts:
+        - name: msk-client-config
+          mountPath: /home/appuser/config
+      volumes:
+      - name: msk-client-config
+        configMap:
+          name: fanda-msk-client-config
+
+

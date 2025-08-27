@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-to-channels
+  namespace: fanda-msk-consumer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-to-channels
+  template:
+    metadata:
+      labels:
+        app: kafka-to-channels
+    spec:
+      serviceAccountName: fanda-msk-consumer-sa
+      containers:
+      - name: kafka-to-channels
+        image: 746491138596.dkr.ecr.us-east-1.amazonaws.com/fanda-ecr-repo:fanda-msk-consumer-v4
+        imagePullPolicy: Always
+        env:
+        - name: MSK_BOOTSTRAP_SERVERS
+          valueFrom:
+            secretKeyRef:
+              name: kafka-channels-credentials
+              key: MSK_BOOTSTRAP_SERVERS
+        - name: MSK_TOPIC
+          value: "fanda-notifications"
+        - name: MSK_CONSUMER_GROUP
+          value: "msk-consumer-group"
+        - name: ENABLED_CHANNELS
+          value: "slack,email"
+
+        # Slack 환경변수를 Secret에서 읽도록 변경
+        - name: SLACK_BOT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: kafka-channels-credentials
+              key: SLACK_BOT_TOKEN
+        # - name: SLACK_CHANNEL
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: kafka-channels-credentials
+        #       key: SLACK_CHANNEL
+        - name: SLACK_CHANNEL_MAP
+          valueFrom:
+            secretKeyRef:
+              name: kafka-channels-credentials
+              key: SLACK_CHANNEL_MAP
+
+
+        # Gmail 환경변수를 Secret에서 읽도록 변경
+        - name: EMAIL_SENDER
+          valueFrom:
+            secretKeyRef:
+              name: kafka-channels-credentials
+              key: EMAIL_SENDER
+        - name: EMAIL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: kafka-channels-credentials
+              key: EMAIL_PASSWORD
+        - name: EMAIL_RECIPIENT
+          valueFrom:
+            secretKeyRef:
+              name: kafka-channels-credentials
+              key: EMAIL_RECIPIENT
+
+
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "64Mi"
+          limits:
+            cpu: "100m"
+            memory: "128Mi"
+      restartPolicy: Always

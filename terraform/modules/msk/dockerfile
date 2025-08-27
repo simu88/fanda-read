@@ -1,0 +1,23 @@
+#======토픽 생성용 이미지======
+FROM confluentinc/cp-kafka:7.4.0             
+
+# AWS MSK IAM 플러그인을 설치할 사용자 권한 경로
+ENV MSK_PLUGIN_DIR=/home/appuser/bin
+RUN mkdir -p $MSK_PLUGIN_DIR
+
+
+# AWS MSK IAM 플러그인 다운로드 (2.3.2)
+RUN curl -L -o $MSK_PLUGIN_DIR/aws-msk-iam-auth.jar \
+    https://github.com/aws/aws-msk-iam-auth/releases/download/v2.3.2/aws-msk-iam-auth-2.3.2-all.jar \
+ && chmod +x $MSK_PLUGIN_DIR/aws-msk-iam-auth.jar
+
+# PATH 유지 및 플러그인 경로 추가
+ENV PATH="/usr/bin:/usr/bin/confluent/bin:$MSK_PLUGIN_DIR:${PATH}"
+
+
+# MSK IAM JAR classpath 추가
+#ENV KAFKA_CLASSPATH="$MSK_PLUGIN_DIR/aws-msk-iam-auth.jar"
+
+# Optional: 작업 디렉터리
+WORKDIR /home/appuser
+
