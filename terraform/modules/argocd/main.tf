@@ -1,7 +1,7 @@
 # 파일 경로: modules/argocd/main.tf
 
 resource "helm_release" "fanda_argocd" {
-  timeout = 600
+  timeout    = 600
   name       = "fanda-argocd"
   repository = "https://argoproj.github.io/argo-helm"
   chart      = "argo-cd"
@@ -50,7 +50,7 @@ resource "helm_release" "fanda_argocd" {
 
       # =================== [운영 권장 사항] ===================
       # 고가용성(HA) 및 리소스 설정을 추가하여 운영 안정성을 높입니다.
-      
+
       controller = {
         replicas = 2 # 단일 장애점 제거
       }
@@ -72,10 +72,10 @@ resource "helm_release" "fanda_argocd" {
       }
 
       redis-ha = {
-        enabled = true # 프로덕션 환경에서는 Redis HA 모드 활성화 권장
+        enabled  = true # 프로덕션 환경에서는 Redis HA 모드 활성화 권장
         replicas = 2
         haproxy = {
-          replicas = 2        # HAProxy replicas
+          replicas = 2 # HAProxy replicas
         }
         # tolerations = [
         #   {
@@ -99,28 +99,4 @@ resource "helm_release" "fanda_argocd" {
   ]
 }
 
-
-  # # --- 이름 규칙 수정을 위한 핵심 설정 ---
-  # # 이 설정을 통해 모든 리소스 이름의 접두사가 'fanda-argocd'로 통일됩니다.
-  # set {
-  #   name  = "fullnameOverride"
-  #   value = "fanda-argocd"
-  # }
-
-  # set {
-  #   name  = "server.service.type"
-  #   value = "LoadBalancer"
-  # }
-
-  # set {
-  #   name  = "server.service.annotations.service\\.beta\\.kubernetes\\.io/aws-load-balancer-type"
-  #   value = "nlb" 
-  # }
-  
-  # set {
-  # name  = "server.service.annotations.service\\.beta\\.kubernetes\\.io/aws-load-balancer-internal"
-  # value = "false"
-  # }
-
-  
 

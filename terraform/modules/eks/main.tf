@@ -1,7 +1,7 @@
 # eks 클러스터 설정
 resource "aws_eks_cluster" "fanda_eks" {
-  name     = var.cluster_name
-  version  = var.cluster_version
+  name    = var.cluster_name
+  version = var.cluster_version
 
   access_config {
     authentication_mode = "API"
@@ -51,7 +51,7 @@ resource "aws_eks_node_group" "fanda_node_group" {
   subnet_ids      = [var.private_subnet_ids[0], var.private_subnet_ids[1]]
   # instance_types = ["m7g.xlarge"]
   # ami_type       = "AL2_ARM_64"
-  
+
   instance_types = ["t3.large"]
   ami_type       = "AL2_x86_64"
 
@@ -85,7 +85,7 @@ resource "aws_eks_node_group" "fanda_node_group" {
     aws_iam_role_policy_attachment.fanda-ng-AmazonEKSWorkerNodePolicy,
     aws_iam_role_policy_attachment.fanda-ng-AmazonEKS_CNI_Policy,
     aws_iam_role_policy_attachment.fanda-ng-AmazonEC2ContainerRegistryReadOnly,
-    aws_iam_role_policy_attachment.fanda-ng-ssm-policy 
+    aws_iam_role_policy_attachment.fanda-ng-ssm-policy
   ]
 }
 
@@ -156,8 +156,8 @@ resource "aws_iam_role_policy_attachment" "ebs_csi_policy_attach" {
 
 
 resource "aws_eks_addon" "ebs_csi_driver" {
-  cluster_name             = aws_eks_cluster.fanda_eks.name
-  addon_name               = "aws-ebs-csi-driver"
+  cluster_name = aws_eks_cluster.fanda_eks.name
+  addon_name   = "aws-ebs-csi-driver"
   //addon_version            = "v1.17.0-eksbuild.1"  # 최신 버전 확인 후 수정 가능
   service_account_role_arn = aws_iam_role.ebs_csi_driver_role.arn
   //resolve_conflicts        = "OVERWRITE"

@@ -8,7 +8,7 @@ from kafka import KafkaConsumer
 from aws_msk_iam_sasl_signer import MSKAuthTokenProvider
 
 from channels.slack_handler import SlackHandler
-from channels.email_handler import EmailHandler  # 필요 시 활성화
+from channels.email_handler import EmailHandler 
 
 # 로깅 설정
 logging.basicConfig(
@@ -59,7 +59,6 @@ class KafkaToChannelsService:
         try:
             # 동적 토큰 제공자 인스턴스 생성
             token_provider = MSKTokenProvider(region=self.region)
-
             consumer = KafkaConsumer(
                 *self.kafka_topics,
                 bootstrap_servers=self.kafka_bootstrap_servers,

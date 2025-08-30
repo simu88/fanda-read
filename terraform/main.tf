@@ -79,6 +79,59 @@ module "eks" {
 
 
 
+
+## Jenkins > EKS,Karpenter 모두허용
+# 1
+resource "aws_security_group_rule" "jenkins_to_eks" {
+  description              = "Allow all traffic from Jenkins to EKS nodes"
+  type                     = "ingress"
+  from_port                = 30000
+  to_port                  = 32767
+  protocol                 = "-1"                                    # all protocols
+  security_group_id        = module.eks.node_group_security_group_id # 대상: EKS SG
+  source_security_group_id = module.jenkins.security_group_id        # 소스: Jenkins SG
+}
+
+# 2
+resource "aws_security_group_rule" "jenkins_to_karpenter" {
+  description              = "Allow all traffic from Jenkins to Karpenter nodes"
+  type                     = "ingress"
+  from_port                = 30000
+  to_port                  = 32767
+  protocol                 = "-1"                               # all protocols
+  security_group_id        = module.karpenter.security_group_id # 대상: Karpenter SG
+  source_security_group_id = module.jenkins.security_group_id   # 소스: Jenkins SG
+}
+
+
+## EKS<->Karpenter 모두허용
+# EKS 노드그룹 → Karpenter 노드그룹 모든 트래픽 허용
+resource "aws_security_group_rule" "eks_to_karpenter_all" {
+  description              = "Allow all traffic from EKS nodes to Karpenter nodes"
+  type                     = "ingress"
+  from_port                = 0
+  to_port                  = 0
+  protocol                 = "-1"                                    # all protocols
+  security_group_id        = module.karpenter.security_group_id      # 대상: Karpenter SG
+  source_security_group_id = module.eks.node_group_security_group_id # 소스: EKS 노드 SG
+}
+
+# Karpenter 노드그룹 → EKS 노드그룹 모든 트래픽 허용
+resource "aws_security_group_rule" "karpenter_to_eks_all" {
+  description              = "Allow all traffic from Karpenter nodes to EKS nodes"
+  type                     = "ingress"
+  from_port                = 0
+  to_port                  = 0
+  protocol                 = "-1"                                    # all protocols
+  security_group_id        = module.eks.node_group_security_group_id # 대상: EKS 노드 SG
+  source_security_group_id = module.karpenter.security_group_id      # 소스: Karpenter SG
+}
+
+
+
+
+
+
 # 이 방식은 순환 의존성을 완벽하게 방지합니다.
 # 5-1. 규칙연결: EKS -> MSK 허용
 resource "aws_security_group_rule" "eks_to_msk" {
@@ -147,7 +200,7 @@ resource "aws_security_group_rule" "bastion_to_rds_db" {
   source_security_group_id = module.vpc.bastion_security_group_id # 소스: Bastion 보안 그룹
 }
 
-
+# 5-3. 규칙연결:  -> RDS DB허용
 resource "aws_security_group_rule" "karpenter_to_rds_db" {
   description              = "Allow Karpenter to access RDS DB"
   type                     = "ingress"
@@ -182,7 +235,7 @@ resource "aws_security_group_rule" "bastion_to_docdb" {
   source_security_group_id = module.vpc.bastion_security_group_id # 소스: Bastion 보안 그룹
 }
 
-# 5-5. 규칙연결: bastion -> DocumentDB허용
+# 5-5. 규칙연결: karpenter-> DocumentDB허용
 resource "aws_security_group_rule" "karpenter_to_docdb" {
   description              = "Allow Karpenter to access DocumentDB"
   type                     = "ingress"
@@ -218,7 +271,7 @@ resource "aws_security_group_rule" "bastion_to_ElasticCache" {
   source_security_group_id = module.vpc.bastion_security_group_id   # 소스: Bastion 보안 그룹
 }
 
-# 5-5. 규칙연결: bastion -> ElasticCache허용
+# 5-5. 규칙연결: karpenter -> ElasticCache허용
 resource "aws_security_group_rule" "karpenter_to_elasticCache" {
   description              = "Allow Karpenter to access ElasticCache"
   type                     = "ingress"
@@ -309,19 +362,19 @@ module "ecr" {
 
 }
 
-module "k8s" {
-  source = "./modules/k8s"
-  providers = {
-    kubernetes = kubernetes.eks
-    helm       = helm.eks
-  }
-  depends_on = [
-    null_resource.wait_for_cluster,
-    module.alb,
-    //data.aws_eks_cluster.eks,
-    //data.aws_eks_cluster_auth.eks
-  ]
-}
+# module "k8s" {
+#   source = "./modules/k8s"
+#   providers = {
+#     kubernetes = kubernetes.eks
+#     helm       = helm.eks
+#   }
+#   depends_on = [
+#     null_resource.wait_for_cluster,
+#     module.alb,
+#     //data.aws_eks_cluster.eks,
+#     //data.aws_eks_cluster_auth.eks
+#   ]
+# }
 
 
 module "karpenter" {

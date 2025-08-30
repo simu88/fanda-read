@@ -14,7 +14,7 @@ spec:
       restartPolicy: Never
       containers:
       - name: kafka-topic-creator
-        image: 746491138596.dkr.ecr.us-east-1.amazonaws.com/fanda-ecr-repo:latest
+        image: 746491138596.dkr.ecr.us-east-1.amazonaws.com/fanda-msk/topic:v1
         imagePullPolicy: Always
         env:
         - name: BOOTSTRAP_SERVERS

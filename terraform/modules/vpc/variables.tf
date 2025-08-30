@@ -30,7 +30,7 @@ variable "public_subnet_cidrs" {
 variable "private_subnet_cidrs" {
   description = "List of CIDRs for private subnets"
   type        = list(string)
-  default     = ["10.0.64.0/19","10.0.96.0/19","10.0.128.0/19","10.0.160.0/19"]
+  default     = ["10.0.64.0/19", "10.0.96.0/19", "10.0.128.0/19", "10.0.160.0/19"]
 }
 
 variable "msk_cluster_arn" {

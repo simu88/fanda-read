@@ -9,7 +9,7 @@ output "msk_cluster_arn" {
 # [수정 후]
 output "bootstrap_servers" { # 출력 이름도 일관성 있게 변경하는 것을 권장
   description = "Bootstrap brokers for the MSK Serverless cluster (supports SASL/IAM)"
-  value = local.bootstrap_server
+  value       = local.bootstrap_server
 }
 
 output "topic_arn" {

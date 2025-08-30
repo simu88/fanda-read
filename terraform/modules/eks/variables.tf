@@ -30,17 +30,3 @@ variable "public_subnet_ids" {
   type = list(string)
 }
 
-
-
-# # 루트 모듈로부터 전달받는다.
-# variable "msk_cluster_arn" {
-#   description = "The ARN of the MSK cluster for the Pod's IAM policy."
-#   type        = string
-#   default     = null 
-# }
-
-# variable "msk_bootstrap_servers" {
-#   description = "The bootstrap servers for the MSK cluster."
-#   type        = string
-#   sensitive   = true
-# }

@@ -6,8 +6,8 @@ output "lambda_function_name" {
 
 
 output "security_group_id" {
-    description = "The ID of the Lambda function's security group."
-    value       = aws_security_group.fanda_lambda_sg.id
+  description = "The ID of the Lambda function's security group."
+  value       = aws_security_group.fanda_lambda_sg.id
 }
 
 # # 생성된 버킷의 이름을 출력합니다. (terraform apply 후 확인 가능)

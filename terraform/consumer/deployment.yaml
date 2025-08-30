@@ -16,7 +16,7 @@ spec:
       serviceAccountName: fanda-msk-consumer-sa
       containers:
       - name: kafka-to-channels
-        image: 746491138596.dkr.ecr.us-east-1.amazonaws.com/fanda-ecr-repo:fanda-msk-consumer-v4
+        image: 746491138596.dkr.ecr.us-east-1.amazonaws.com/fanda-msk/consumer:v1
         imagePullPolicy: Always
         env:
         - name: MSK_BOOTSTRAP_SERVERS
@@ -30,18 +30,11 @@ spec:
           value: "msk-consumer-group"
         - name: ENABLED_CHANNELS
           value: "slack,email"
-
-        # Slack 환경변수를 Secret에서 읽도록 변경
         - name: SLACK_BOT_TOKEN
           valueFrom:
             secretKeyRef:
               name: kafka-channels-credentials
               key: SLACK_BOT_TOKEN
-        # - name: SLACK_CHANNEL
-        #   valueFrom:
-        #     secretKeyRef:
-        #       name: kafka-channels-credentials
-        #       key: SLACK_CHANNEL
         - name: SLACK_CHANNEL_MAP
           valueFrom:
             secretKeyRef:

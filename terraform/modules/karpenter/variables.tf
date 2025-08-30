@@ -39,11 +39,3 @@ variable "namespace" {
   default     = "fanda-karpenter"
 }
 
-
-# variable "karpenter_controller_role_arn" {
-#   type = string
-# }
-
-# variable "karpenter_node_instance_profile" {
-#   type = string
-# }

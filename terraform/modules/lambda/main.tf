@@ -1,47 +1,3 @@
-# # --- Lambda용 IAM Policy ---
-# resource "aws_iam_policy" "fanda_s3_to_msk_lambda_policy" {
-#   name        = "fanda-s3-to-msk-lambda-policy"
-#   description = "Policy for Lambda to read from S3 and write to MSK"
-
-#   policy = jsonencode({
-#     Version   = "2012-10-17",
-#     Statement = [
-#       {
-#         Sid      = "GetBootstrapBrokers"
-#         Effect   = "Allow"
-#         Action   = [
-#           "kafka:GetBootstrapBrokers",
-#           "kafka:DescribeCluster"
-#         ]
-#         Resource = var.msk_cluster_arn
-#       },
-#       {
-#         Sid      = "ProducerAccess"
-#         Effect   = "Allow"
-#         Action   = [
-#           "kafka-cluster:Connect",
-#           "kafka-cluster:DescribeCluster",
-#           "kafka-cluster:DescribeTopic",
-#           "kafka-cluster:WriteData"
-#         ]
-#         Resource = [
-#           var.msk_cluster_arn,
-#           var.msk_topic_arn
-#         ]
-#       }
-
-
-#     ]
-#   })
-# }
-
-# # Lambda IAM Role에 producing policy 연결
-# resource "aws_iam_role_policy_attachment" "fanda_s3_to_msk_lambda_policy_attachment" {
-#   role       = aws_iam_role.fanda_s3_to_msk_lambda_role.name
-#   policy_arn = aws_iam_policy.fanda_s3_to_msk_lambda_policy.arn
-# }
-
-
 # Lambda용 IAM Role 생성
 resource "aws_iam_role" "fanda_s3_to_msk_lambda_role" {
   name = "fanda_s3_to_msk_lambda_role"
@@ -135,14 +91,6 @@ resource "aws_lambda_function" "fanda_s3_to_msk_lambda" {
 
 
 
-# S3 버킷생성
-resource "aws_s3_bucket" "fanda_bucket_test" {
-  bucket = "fanda-bucket-test"
-
-  tags = {
-    Name = "fanda-bucket-test"
-  }
-}
 
 # # S3 초기 폴더 생성
 # resource "aws_s3_object" "folders" {

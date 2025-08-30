@@ -17,21 +17,21 @@ data "aws_iam_policy_document" "eks_service_account_assume_role_topic" {
 }
 # 1-2. 커스텀 IAM Role 생성
 resource "aws_iam_role" "fanda_msk_topic_create_role" {
-  name = "fanda-msk-topic-create-role"
+  name               = "fanda-msk-topic-create-role"
   assume_role_policy = data.aws_iam_policy_document.eks_service_account_assume_role_topic.json
 }
- 
+
 # 1-3. 커스텀 IAM 정책
 resource "aws_iam_policy" "fanda_msk_topic_create_policy" {
   name        = "fanda-msk-topic-create-policy"
   description = "Allow creating MSK topics"
-  policy      = jsonencode({
+  policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
-      
+
       # 클러스터 기본 권한
       {
-        Effect   = "Allow",
+        Effect = "Allow",
         Action = [
           "kafka-cluster:Connect",
           "kafka-cluster:DescribeCluster",
@@ -41,7 +41,7 @@ resource "aws_iam_policy" "fanda_msk_topic_create_policy" {
       },
       # 토픽 권한
       {
-        Effect   = "Allow",
+        Effect = "Allow",
         Action = [
           "kafka-cluster:CreateTopic",
           "kafka-cluster:DescribeTopic",
@@ -125,14 +125,14 @@ resource "aws_iam_role" "fanda_msk_producer_role" {
 resource "aws_iam_policy" "fanda_msk_producer_policy" {
   name        = "fanda-msk-producer-policy"
   description = "Allow producing data to MSK topics"
-  policy      = jsonencode({
+  policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
       # 동적으로 MSK 클러스터 브로커 엔드포인트 조회 권한
       {
-        Sid      = "GetBootstrapBrokers"
-        Effect   = "Allow"
-        Action   = [
+        Sid    = "GetBootstrapBrokers"
+        Effect = "Allow"
+        Action = [
           "kafka:GetBootstrapBrokers",
           "kafka:DescribeCluster"
         ]
@@ -140,7 +140,7 @@ resource "aws_iam_policy" "fanda_msk_producer_policy" {
       },
       # 클러스터 기본 권한
       {
-        Effect   = "Allow",
+        Effect = "Allow",
         Action = [
           "kafka-cluster:Connect",
           "kafka-cluster:DescribeCluster"
@@ -150,7 +150,7 @@ resource "aws_iam_policy" "fanda_msk_producer_policy" {
       },
       # 토픽 권한
       {
-        Effect   = "Allow",
+        Effect = "Allow",
         Action = [
           "kafka-cluster:WriteData",
           "kafka-cluster:DescribeTopic"
@@ -219,14 +219,14 @@ resource "aws_iam_role" "fanda_msk_consumer_role" {
 resource "aws_iam_policy" "fanda_msk_consumer_policy" {
   name        = "fanda-msk-consumer-policy"
   description = "Allow consuming data from MSK topics"
-  policy      = jsonencode({
+  policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
       # 동적으로 MSK 클러스터 브로커 엔드포인트 조회 권한
       {
-        Sid      = "GetBootstrapBrokers"
-        Effect   = "Allow"
-        Action   = [
+        Sid    = "GetBootstrapBrokers"
+        Effect = "Allow"
+        Action = [
           "kafka:GetBootstrapBrokers",
           "kafka:DescribeCluster"
         ]
@@ -234,7 +234,7 @@ resource "aws_iam_policy" "fanda_msk_consumer_policy" {
       },
       # 클러스터 기본 권한
       {
-        Effect   = "Allow",
+        Effect = "Allow",
         Action = [
           "kafka-cluster:Connect",
           "kafka-cluster:DescribeCluster"
@@ -244,7 +244,7 @@ resource "aws_iam_policy" "fanda_msk_consumer_policy" {
       },
       # 토픽 권한
       {
-        Effect   = "Allow",
+        Effect = "Allow",
         Action = [
           "kafka-cluster:ReadData",
           "kafka-cluster:DescribeTopic"
@@ -254,10 +254,10 @@ resource "aws_iam_policy" "fanda_msk_consumer_policy" {
         ],
         Resource = local.topic_arn
       },
-      
+
       # 소비자 그룹 권한
       {
-        Effect   = "Allow",
+        Effect = "Allow",
         Action = [
           "kafka-cluster:DescribeGroup", # 그룹 상태 읽기 권한
           "kafka-cluster:AlterGroup"     # 그룹 참여/탈퇴 및 오프셋 커밋 권한

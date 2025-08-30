@@ -3,7 +3,7 @@ data "aws_iam_policy_document" "karpenter_assume_policy" {
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
     principals {
-      type        = "Federated"
+      type = "Federated"
       # [수정] data 소스 대신 명시적인 변수를 사용합니다.
       identifiers = [var.oidc_provider_arn]
     }
@@ -17,7 +17,7 @@ data "aws_iam_policy_document" "karpenter_assume_policy" {
 
 # 1-2. 위 정책을 기반으로 실제 AWS에 Role생성
 resource "aws_iam_role" "fanda_karpenter_controller" {
-  name = "fanda-karpenter-controller"
+  name               = "fanda-karpenter-controller"
   assume_role_policy = data.aws_iam_policy_document.karpenter_assume_policy.json
 }
 
@@ -42,7 +42,7 @@ data "aws_iam_policy_document" "karpenter_controller_policy" {
       "ssm:GetParameter",
       "eks:DescribeCluster",
       "pricing:GetProducts",
-      "ec2:DescribeSpotPriceHistory",  
+      "ec2:DescribeSpotPriceHistory",
       "ec2:DescribeInstanceTypes",
       "ec2:DescribeInstanceTypeOfferings",
       "ec2:DescribeAvailabilityZones",
@@ -54,8 +54,6 @@ data "aws_iam_policy_document" "karpenter_controller_policy" {
       "ec2:DescribeVolumes",
       "ec2:AttachVolume",
       "elasticloadbalancing:*",
-        # 추가 IAM 권한 (Instance Profile 등 생성/삭제)
-       # 추가 IAM 권한 (Instance Profile 등 생성/삭제)
       "iam:CreateInstanceProfile",
       "iam:DeleteInstanceProfile",
       "iam:AddRoleToInstanceProfile",
@@ -66,7 +64,7 @@ data "aws_iam_policy_document" "karpenter_controller_policy" {
     resources = ["*"]
   }
 
-  # 문(Statement) 2: iam:PassRole 권한만 별도로 분리 (Resource를 특정 역할로 제한)
+  # iam:PassRole 권한만 별도로 분리 (Resource를 특정 역할로 제한)
   statement {
     sid    = "KarpenterPassRolePolicy"
     effect = "Allow"
@@ -76,8 +74,8 @@ data "aws_iam_policy_document" "karpenter_controller_policy" {
     # 중요! 실제로 노드에 부여될 역할(Role)의 ARN을 정확히 지정합니다.
     # fanda-karpenter-node-role의 ARN을 참조하도록 수정해야 합니다.
     resources = [
-      aws_iam_role.fanda_karpenter_node_role.arn # <--- 이 부분이 핵심!
-      
+      aws_iam_role.fanda_karpenter_node_role.arn
+
     ]
   }
 
@@ -87,7 +85,7 @@ data "aws_iam_policy_document" "karpenter_controller_policy" {
 resource "aws_iam_policy" "fanda_karpenter_controller_policy" {
   name   = "fanda-karpenter-controller-policy"
   policy = data.aws_iam_policy_document.karpenter_controller_policy.json
-  
+
   lifecycle {
     create_before_destroy = true
   }
