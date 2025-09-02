@@ -92,6 +92,18 @@ resource "aws_security_group_rule" "jenkins_to_eks" {
   source_security_group_id = module.jenkins.security_group_id        # 소스: Jenkins SG
 }
 
+## Jenkins > Karpenter 모두허용
+# 2
+resource "aws_security_group_rule" "jenkins_to_karpenter" {
+  description              = "Allow all traffic from Jenkins to Karpenter nodes"
+  type                     = "ingress"
+  from_port                = 30000
+  to_port                  = 32767
+  protocol                 = "-1"                               # all protocols
+  security_group_id        = module.karpenter.security_group_id # 대상: Karpenter SG
+  source_security_group_id = module.jenkins.security_group_id   # 소스: Jenkins SG
+}
+
 # 2
 resource "aws_security_group_rule" "jenkins_to_karpenter" {
   description              = "Allow all traffic from Jenkins to Karpenter nodes"
